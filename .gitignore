@@ -1,0 +1,29 @@
+# Raw data (see data/README.md for how to obtain)
+data/*.csv
+
+# Generated warehouse artefacts
+warehouse/*.duckdb
+warehouse/*.db
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Notebooks
+notebooks/.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets / credentials
+*.env
+.env
+*credentials*.json
+*service-account*.json
+
+# OS
+.DS_Store
