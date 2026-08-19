@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instacart Analytics — Behaviour Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#182620;
+    --paper:#F6F3EC;
+    --panel:#FFFFFF;
+    --line:#DCD6C7;
+    --sage:#3F6B4F;
+    --sage-soft:#DCE7DD;
+    --spice:#C1601E;
+    --spice-soft:#F3DCC7;
+    --muted:#6B6459;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  header.hero{
+    background: var(--ink);
+    color: #EFEAE0;
+    padding: 48px 56px 0 56px;
+  }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9FB6A6;
+    margin-bottom: 14px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(30px, 4vw, 46px);
+    margin: 0 0 14px 0;
+    line-height: 1.05;
+  }
+  .hero p{
+    max-width: 640px;
+    color: #C9C2B4;
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0 0 28px 0;
+  }
+  nav.tabs{
+    display:flex;
+    gap: 4px;
+    border-top: 1px solid #33453A;
+    margin-top: 8px;
+  }
+  nav.tabs button{
+    appearance:none;
+    background:none;
+    border:none;
+    color:#9CA69C;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 16px 20px;
+    cursor:pointer;
+    border-bottom: 2px solid transparent;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition: color .15s ease;
+  }
+  nav.tabs button .num{ color:#5E7C69; font-weight:500; }
+  nav.tabs button:hover{ color:#EFEAE0; }
+  nav.tabs button.active{
+    color:#EFEAE0;
+    border-bottom-color: var(--spice);
+  }
+  nav.tabs button.active .num{ color: var(--spice); }
+
+  main{ padding: 40px 56px 80px 56px; max-width: 1280px; margin:0 auto; }
+  .page{ display:none; }
+  .page.active{ display:block; animation: fade .25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .page-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom: 24px; flex-wrap:wrap; gap: 10px;
+  }
+  .page-head h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 26px;
+    margin: 0;
+  }
+  .page-head .sources{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .kpi-row{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 22px;
+  }
+  .kpi .value{
+    font-family:'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--sage);
+    line-height: 1;
+  }
+  .kpi .value.spice{ color: var(--spice); }
+  .kpi .label{
+    margin-top:8px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .grid-2{ display:grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+  .grid-3{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .panel h3{
+    font-family:'Fraunces', serif;
+    font-size: 17px;
+    font-weight:600;
+    margin: 0 0 4px 0;
+  }
+  .panel .sub{
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 16px 0;
+  }
+  .chart-wrap{ position:relative; height: 260px; }
+  .chart-wrap.tall{ height: 320px; }
+
+  table.data{
+    width:100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.data th{
+    text-align:left;
+    font-family: var(--mono);
+    font-weight:500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 10px;
+  }
+  table.data td{
+    padding: 9px 10px;
+    border-bottom: 1px solid #EFEAE0;
+  }
+  table.data tr:hover td{ background: var(--sage-soft); }
+
+  .segment-legend{ display:flex; flex-direction:column; gap:10px; margin-top:12px;}
+  .segment-legend .row{ display:flex; align-items:center; gap:10px; font-size:13px;}
+  .swatch{ width:12px; height:12px; border-radius:2px; flex-shrink:0;}
+
+  .callout{
+    border-left: 3px solid var(--spice);
+    background: var(--spice-soft);
+    padding: 14px 18px;
+    border-radius: 2px;
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .callout.green{ border-left-color: var(--sage); background: var(--sage-soft); }
+  .callout b{ display:block; margin-bottom:4px; font-family: var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+
+  .findings-list{ display:grid; grid-template-columns: repeat(2,1fr); gap:16px; }
+  .finding{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--sage);
+    padding: 18px 20px;
+    border-radius: 4px;
+  }
+  .finding h4{ margin:0 0 6px 0; font-family:'Fraunces', serif; font-size:15px; }
+  .finding p{ margin:0; font-size:13.5px; color: var(--muted); line-height:1.55; }
+
+  .placeholder-note{
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    text-align:center;
+    padding: 24px 0 0 0;
+  }
+
+  @media (max-width: 900px){
+    header.hero, main{ padding-left:20px; padding-right:20px; }
+    .kpi-row{ grid-template-columns: repeat(2,1fr); }
+    .grid-2, .grid-3, .findings-list{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">Module 2 · Instacart Market Basket Analysis · Team Dashboard Draft</div>
+  <h1>What baskets, timing, and reorders tell us about Instacart shoppers</h1>
+  <p>A behaviour-first view of 3.4M orders and 206K customers — built for the star schema in <code>docs/DATA_DICTIONARY.md</code>. No prices, revenue, or calendar dates exist in this dataset, so every metric here is a behavioural one.</p>
+  <nav class="tabs">
+    <button class="active" data-page="overview"><span class="num">01</span> Overview</button>
+    <button data-page="segments"><span class="num">02</span> Customer Segments</button>
+    <button data-page="products"><span class="num">03</span> Product Analysis</button>
+    <button data-page="findings"><span class="num">04</span> Findings</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="page active" id="overview">
+    <div class="page-head">
+      <h2>When do customers order, and how full is a typical basket?</h2>
+      <div class="sources">fact_order · fact_order_item · dim_order_slot</div>
+    </div>
+
+    <div class="callout">
+      <b>Placeholder data</b>
+      Figures on this page are illustrative, shaped from the documented dataset statistics (e.g. avg basket size 10.11 items). Swap in live query results once the dbt marts run against BigQuery.
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="value">3.42M</div><div class="label">total orders (fact_order)</div></div>
+      <div class="kpi"><div class="value">206K</div><div class="label">unique customers (dim_user)</div></div>
+      <div class="kpi"><div class="value spice">10.1</div><div class="label">avg items per basket</div></div>
+      <div class="kpi"><div class="value">Sun · 10am</div><div class="label">peak day &amp; hour slot</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Orders by day and hour</h3>
+        <p class="sub">168 slots from dim_order_slot — Sunday and Monday mornings dominate</p>
+        <div class="chart-wrap tall"><canvas id="chartHeat"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>Basket size distribution</h3>
+        <p class="sub">Right-skewed — most orders hold 4–10 items</p>
+        <div class="chart-wrap tall"><canvas id="chartBasket"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Orders across the week</h3>
+      <p class="sub">order_dow 0–6, grouped by time_band</p>
+      <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ================= SEGMENTS ================= -->
+  <section class="page" id="segments">
+    <div class="page-head">
+      <h2>What customer segments exist, and how do they differ?</h2>
+      <div class="sources">dim_user — engineered behavioural features</div>
+    </div>
+
+    <div class="callout green">
+      <b>Segment rule</b>
+      Split on the dataset median for <code>total_orders</code> (~10) and <code>customer_reorder_rate</code> (~44.3%) — see DATA_DICTIONARY.md §3.
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Segment composition</h3>
+        <p class="sub">Share of the 206K customer base</p>
+        <div class="chart-wrap tall"><canvas id="chartSegDonut"></canvas></div>
+        <div class="segment-legend">
+          <div class="row"><span class="swatch" style="background:#3F6B4F"></span> Frequent Repeat Customers — orders often, high reorder rate</div>
+          <div class="row"><span class="swatch" style="background:#7FA98C"></span> Frequent Variety Customers — orders often, explores more</div>
+          <div class="row"><span class="swatch" style="background:#C1601E"></span> Occasional Repeat Customers — orders less, sticks to favourites</div>
+          <div class="row"><span class="swatch" style="background:#E3A876"></span> Occasional Variety Customers — orders less, lower repeat rate</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Basket size by segment</h3>
+        <p class="sub">average_basket_size, per customer_segment</p>
+        <div class="chart-wrap tall"><canvas id="chartSegBasket"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Segment behaviour summary</h3>
+      <table class="data">
+        <thead><tr><th>Segment</th><th>Avg. orders</th><th>Reorder rate</th><th>Avg. basket size</th><th>Unique products</th></tr></thead>
+        <tbody>
+          <tr><td>Frequent Repeat</td><td>18.4</td><td>58%</td><td>11.2</td><td>34</td></tr>
+          <tr><td>Frequent Variety</td><td>16.7</td><td>31%</td><td>10.6</td><td>61</td></tr>
+          <tr><td>Occasional Repeat</td><td>6.1</td><td>52%</td><td>8.9</td><td>19</td></tr>
+          <tr><td>Occasional Variety</td><td>5.4</td><td>27%</td><td>8.1</td><td>27</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= PRODUCTS ================= -->
+  <section class="page" id="products">
+    <div class="page-head">
+      <h2>Which products and departments drive demand and repeat purchase?</h2>
+      <div class="sources">dim_product · fact_order_item</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Demand by department</h3>
+        <p class="sub">Share of order-item records</p>
+        <div class="chart-wrap tall"><canvas id="chartDept"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>Top reorder-rate products</h3>
+        <p class="sub">Minimum 500 purchases, filters out small-sample noise</p>
+        <table class="data">
+          <thead><tr><th>Product</th><th>Aisle</th><th>Reorder rate</th></tr></thead>
+          <tbody>
+            <tr><td>Organic Bananas</td><td>fresh fruits</td><td>91%</td></tr>
+            <tr><td>Bag of Organic Bananas</td><td>fresh fruits</td><td>88%</td></tr>
+            <tr><td>Organic Whole Milk</td><td>milk</td><td>82%</td></tr>
+            <tr><td>Organic Avocado</td><td>fresh vegetables</td><td>79%</td></tr>
+            <tr><td>Organic Strawberries</td><td>fresh fruits</td><td>77%</td></tr>
+            <tr><td>Sparkling Water</td><td>water seltzer sparkling water</td><td>74%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Products most often added first</h3>
+      <p class="sub">add_to_cart_order = 1 — likely habitual, top-of-mind items</p>
+      <div class="chart-wrap"><canvas id="chartFirstAdded"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ================= FINDINGS ================= -->
+  <section class="page" id="findings">
+    <div class="page-head">
+      <h2>What this means for the business</h2>
+      <div class="sources">Draft — to finalise once real query results are in</div>
+    </div>
+
+    <div class="findings-list">
+      <div class="finding">
+        <h4>Workforce planning</h4>
+        <p>Sunday and Monday mornings consistently peak — picking/packing staffing should scale up ahead of these windows rather than spreading evenly across the week.</p>
+      </div>
+      <div class="finding">
+        <h4>Repeat-order nudges</h4>
+        <p>Frequent Repeat Customers already reorder over half their basket — a "reorder your usuals" prompt at checkout targets this group with minimal extra effort.</p>
+      </div>
+      <div class="finding">
+        <h4>Product availability</h4>
+        <p>A small set of produce and dairy staples carry very high reorder rates — stock-outs on these items likely hurt retention disproportionately more than on long-tail products.</p>
+      </div>
+      <div class="finding">
+        <h4>Growing Occasional customers</h4>
+        <p>Occasional segments order infrequently with lower variety — re-engagement campaigns (not discounts on already-loyal items) may lift order frequency more effectively.</p>
+      </div>
+    </div>
+
+    <p class="placeholder-note">Draft dashboard — Jenny &amp; Lai Yoke, data warehouse workstream · Module 2 Instacart project</p>
+  </section>
+
+</main>
+
+<script>
+  // ---- tab switching ----
+  document.querySelectorAll('nav.tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.page).classList.add('active');
+    });
+  });
+
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = '#6B6459';
+  Chart.defaults.borderColor = '#EFEAE0';
+
+  const sage = '#3F6B4F', sageSoft='#9FBBA9', spice = '#C1601E', spiceSoft = '#E3A876';
+
+  // Basket size distribution
+  new Chart(document.getElementById('chartBasket'), {
+    type:'bar',
+    data:{
+      labels:['1-3','4-6','7-9','10-12','13-15','16-18','19-21','22-24','25-27','28-30+'],
+      datasets:[{ data:[540,676,606,441,312,213,141,93,44,38], backgroundColor: sage, borderRadius:2 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:'#EFEAE0'} }, x:{ grid:{display:false} } } }
+  });
+
+  // Orders across week (stacked by time band)
+  new Chart(document.getElementById('chartWeek'), {
+    type:'bar',
+    data:{
+      labels:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+      datasets:[
+        {label:'Morning', data:[92,88,70,66,68,72,80], backgroundColor: sage},
+        {label:'Afternoon', data:[70,66,58,55,57,60,66], backgroundColor: sageSoft},
+        {label:'Evening', data:[30,28,26,25,26,29,34], backgroundColor: spiceSoft},
+        {label:'Night', data:[8,7,6,6,6,7,9], backgroundColor: spice},
+      ]
+    },
+    options:{
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10}}},
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:'#EFEAE0'}} }
+    }
+  });
+
+  // Heatmap-ish: hour buckets as horizontal bar per representative day
+  new Chart(document.getElementById('chartHeat'), {
+    type:'bar',
+    data:{
+      labels:['12am','3am','6am','9am','10am','12pm','3pm','6pm','9pm','11pm'],
+      datasets:[{ label:'Order volume index', data:[4,2,8,58,100,86,74,52,28,10], backgroundColor: spice, borderRadius:2 }]
+    },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#EFEAE0'}}, y:{grid:{display:false}} } }
+  });
+
+  // Segment donut
+  new Chart(document.getElementById('chartSegDonut'), {
+    type:'doughnut',
+    data:{
+      labels:['Frequent Repeat','Frequent Variety','Occasional Repeat','Occasional Variety'],
+      datasets:[{ data:[27,23,24,26], backgroundColor:['#3F6B4F','#7FA98C','#C1601E','#E3A876'], borderWidth:0 }]
+    },
+    options:{ cutout:'62%', plugins:{legend:{display:false}} }
+  });
+
+  // Segment basket size bar
+  new Chart(document.getElementById('chartSegBasket'), {
+    type:'bar',
+    data:{
+      labels:['Frequent\nRepeat','Frequent\nVariety','Occasional\nRepeat','Occasional\nVariety'],
+      datasets:[{ data:[11.2,10.6,8.9,8.1], backgroundColor:['#3F6B4F','#7FA98C','#C1601E','#E3A876'], borderRadius:3 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#EFEAE0'}}, x:{grid:{display:false}} } }
+  });
+
+  // Department demand
+  new Chart(document.getElementById('chartDept'), {
+    type:'bar',
+    data:{
+      labels:['produce','dairy eggs','snacks','beverages','frozen','bakery','pantry','deli'],
+      datasets:[{ data:[29,15,11,10,8,6,6,5], backgroundColor: sage, borderRadius:2 }]
+    },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#EFEAE0'}}, y:{grid:{display:false}} } }
+  });
+
+  // First-added products
+  new Chart(document.getElementById('chartFirstAdded'), {
+    type:'bar',
+    data:{
+      labels:['Bananas','Organic Whole Milk','Baby Spinach','Large Lemon','Limes','Organic Avocado'],
+      datasets:[{ data:[8.4,5.1,3.9,3.2,2.8,2.6], backgroundColor: spice, borderRadius:2 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{title:{display:true,text:'% of orders where added first'}, grid:{color:'#EFEAE0'}}, x:{grid:{display:false}} } }
+  });
+</script>
+
+</body>
+</html>
