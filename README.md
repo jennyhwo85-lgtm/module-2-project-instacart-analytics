@@ -77,7 +77,7 @@ instacart-analytics/
 ├── dbt_project/             # staging, intermediate, mart SQL models and tests
 ├── notebooks/               # numbered, reproducible analysis notebooks
 ├── tests/                   # Python tests where dbt tests are not sufficient
-├── .github/workflows/       # pull-request quality workflow
+├── github/workflows/        # pull-request quality workflow
 └── presentation/            # final slide deck and speaker notes
 ```
 
