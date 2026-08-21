@@ -61,8 +61,8 @@ Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_
 
 | Owner(s) | Responsibility |
 |---|---|
-| Lai Yoke, Jenny Hwo | Data warehouse (star schema, BigQuery), GitHub repo |
-| Hui Min, Benedict | EDA, dashboard, ELT / data cleaning (in GCP), dbt |
+| Lai Yoke, Jenny Hwo | Data warehouse design (star schema), local DuckDB pipeline + validation, GitHub repo |
+| Hui Min, Benedict | ELT / data cleaning (in GCP, BigQuery), dbt, EDA, dashboard |
 | Wei Xiang | Integration review, presentation, audience Q&A |
 
 ## 8. Repository Structure
