@@ -64,8 +64,8 @@ Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_
 
 | Owner(s) | Responsibility |
 |---|---|
-| Lai Yoke, Jenny Hwo | Data warehouse (star schema, BigQuery), GitHub repo |
-| Hui Min, Benedict | EDA, dashboard, ELT / data cleaning (in GCP), dbt |
+| Lai Yoke, Jenny Hwo | Data warehouse design (star schema), local DuckDB pipeline + validation, GitHub repo |
+| Hui Min, Benedict | ELT / data cleaning (in GCP, BigQuery), dbt, EDA, dashboard |
 | Wei Xiang | Integration review, presentation, audience Q&A |
 
 ## 8. Repository Structure
@@ -73,15 +73,15 @@ Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_
 ```text
 instacart-analytics/
 ├── README.md                # this file
-├── docs/                     # architecture decisions, data dictionary, diagrams, assignment brief
-├── data/                     # dataset location / download instructions (raw CSVs not committed)
-├── src/                      # Python ingestion and quality-check scripts
-├── warehouse/                # generated warehouse artefacts (ignored)
-├── dbt_project/               # staging, intermediate, mart SQL models and tests
-├── notebooks/                # numbered, reproducible analysis notebooks
-├── tests/                     # Python tests where dbt tests are not sufficient
-├── .github/workflows/         # pull-request quality workflow
-└── presentation/              # final slide deck and speaker notes
+├── docs/                    # architecture decisions, data dictionary, diagrams, assignment brief
+├── data/                    # dataset location / download instructions (raw CSVs not committed)
+├── src/                     # Python ingestion and quality-check scripts
+├── warehouse/               # generated warehouse artefacts (ignored)
+├── dbt_project/             # staging, intermediate, mart SQL models and tests
+├── notebooks/               # numbered, reproducible analysis notebooks
+├── tests/                   # Python tests where dbt tests are not sufficient
+├── github/workflows/        # pull-request quality workflow
+└── presentation/            # final slide deck and speaker notes
 ```
 
 Generated databases, raw CSVs, notebook caches, and secrets must not be committed. Code, model SQL, test definitions, documentation, and a reproducible dependency file must be committed.
