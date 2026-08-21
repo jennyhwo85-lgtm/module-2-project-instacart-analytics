@@ -59,6 +59,9 @@ Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_
 
 ## 7. Team and Task Assignment
 
+
+> **Pending confirmation (as of 2026-08-20):** Wei Xiang flagged that the split below may not match what was agreed. His understanding: Lai Yoke + Jenny Hwo also own producing the cleaned `.db` file (not just schema design); Hui Min validates the cleaned data against the documentation and runs EDA; the Streamlit dashboard can be built by either Hui Min or Wei Xiang. To be confirmed with the full team after class and this table updated accordingly.
+
 | Owner(s) | Responsibility |
 |---|---|
 | Lai Yoke, Jenny Hwo | Data warehouse (star schema, BigQuery), GitHub repo |
