@@ -1,0 +1,26 @@
+default_environment: dev
+project_id: 01a00fc3-ff7a-761d-a93f-42d85ed7c1ae
+environments:
+- name: dev
+- name: staging
+- name: prod
+send_anonymous_usage_stats: false
+plugins:
+  extractors:
+  - name: tap-duckdb
+    variant: meltanolabs
+    pip_url: git+https://github.com/MeltanoLabs/tap-duckdb.git setuptools<82
+    config:
+      path: $MELTANO_PROJECT_ROOT/Warehouse/instacart.duckdb
+  loaders:
+  - name: target-bigquery
+    variant: z3z1ma
+    pip_url: git+https://github.com/z3z1ma/target-bigquery.git
+    config:
+      project: sincere-stock-505109-m1
+      dataset: instacart_raw
+      location: asia-southeast1
+      method: batch_job
+      denormalized: true
+      overwrite: 'false'
+      batch_size: 100000
