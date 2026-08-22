@@ -119,12 +119,13 @@ Relationship checks ensure that transaction records can be connected to the corr
 
 Numerical distributions were reviewed using descriptive statistics, histograms, box plots, and the interquartile-range method.
 
-| File | IQR-flagged records | Percentage |
-|---|---:|---:|
-| `order_products__prior.csv` | 1,357,124 | 4.1842% |
-| `order_products__train.csv` | 50,853 | 3.6727% |
+| File | Field | IQR outlier rule | IQR-flagged records | Percentage |
+|---|---|---|---:|---:|
+| `orders.csv` | `order_number` | Above 50 | 216,870 | 6.34% |
+| `order_products__prior.csv` | `add_to_cart_order` | Above 23 | 1,357,124 | 4.1842% |
+| `order_products__train.csv` | `add_to_cart_order` | 26 or above | 50,853 | 3.6727% |
 
-Many flagged records had high `add_to_cart_order` values, indicating products placed later in large baskets. These observations were retained as potentially large but valid baskets. Customers with many orders and orders with large basket sizes were also retained as valid customer behaviour.
+Many flagged records had high `add_to_cart_order` values, indicating products placed later in large baskets. The flagged `order_number` records represent customers with many previous orders. These observations were retained as potentially large but valid baskets and frequent customers, not as data errors. Customers with many orders and orders with large basket sizes were also retained as valid customer behaviour.
 
 Identifiers and coded fields such as `product_id`, `order_dow`, and `order_hour_of_day` were not interpreted using IQR because their numerical size does not measure business magnitude.
 
@@ -147,33 +148,23 @@ The following values were deliberately retained:
 
 These values describe genuine customer behaviour. Automatically deleting or replacing them would introduce bias and reduce the usefulness of the data for customer and market-basket analysis.
 
-## Step 9: Combine the Validated Prior and Train Files
+## Step 9: Prior and Train Files Remain Separate at This Stage
 
-After validation, `order_products__prior.csv` and `order_products__train.csv` were stacked vertically using `pd.concat()`, which is equivalent to SQL `UNION ALL`.
-
-```python
-stg_order_items = pd.concat(
-    [
-        order_products_prior,
-        order_products_train
-    ],
-    ignore_index=True
-)
-```
-
-The resulting staging table contained:
+`order_products__prior.csv` and `order_products__train.csv` share the same columns and the same grain—one product within one order:
 
 ```text
 32,434,489 prior records
 + 1,384,617 train records
-= 33,819,106 order-item records
+= 33,819,106 order-item records (combined total)
 ```
+
+At this stage (raw ingestion and local cleaning, covered by `create_duckdb.py`, `validate_duckdb.py`, and `Data Cleaning.ipynb`), the two files are kept as **separate tables** (`raw.order_products_prior` and `raw.order_products_train`). They are validated separately, and no `pd.concat()` or `UNION ALL` step is performed here.
 
 ### Rationale
 
-Both files have the same columns and the same grain—one product within one order. `UNION ALL` preserves every valid record and avoids unnecessary duplicate removal.
+Keeping prior and train separate at the raw layer lets each file's validation results (uniqueness, referential integrity, eval-set consistency) be checked and reported independently. Combining them into a single order-item table—equivalent to a `UNION ALL`—is a staging/transformation step that happens later in the pipeline (e.g. in dbt or a downstream feature-engineering step), not during raw ingestion or this cleaning pass.
 
-Product records for `test` orders were not provided in the source dataset. Test orders remained in `orders.csv`, but they were excluded from basket-size, product-level, and order-item calculations. Combining the files is a staging transformation performed after cleaning rather than a modification of the original raw files.
+Product records for `test` orders were not provided in the source dataset. Test orders remain in `orders.csv`, but they are excluded from basket-size, product-level, and order-item calculations.
 
 ## Step 10: Perform Final Validation
 
@@ -201,5 +192,5 @@ The cleaning process found that the Instacart source files were generally high q
 - Valid statistical outliers were retained.
 - Large baskets and frequent customers were not deleted.
 - The six original source files remained unchanged.
-- Prior and train order-product records were combined only after validation.
+- Prior and train order-product records were validated separately and remain as separate tables at this stage; combining them happens in a later transformation step.
 - Features such as `time_band`, `basket_size`, `reordered_item_count`, `customer_reorder_rate`, and `customer_segment` were created later during feature engineering, not during raw-data cleaning.
