@@ -1,8 +1,10 @@
 # Raw data (see data/README.md for how to obtain)
 data/*.csv
+data/*.zip
 
 # Generated warehouse artefacts
 warehouse/*.duckdb
+!warehouse/instacart.duckdb
 warehouse/*.db
 
 # dbt

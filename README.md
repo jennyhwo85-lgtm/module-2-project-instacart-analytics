@@ -6,9 +6,9 @@ NTU SCTP Module 2 group project. A small, trustworthy analytics system that turn
 
 Instacart processes millions of customer orders across thousands of products. However, the original data is distributed across six separate CSV files, making it difficult for business users to analyse ordering patterns, customer behaviour, and product demand efficiently.
 
-Without an organised analytical data model, Instacart may find it difficult to answer important questions such as when customers place orders, what a typical order contains, which products are purchased and reordered most frequently, and how customers differ in their purchasing behaviour.
+**Problem we are solving.** Raw transaction files are large, split across several tables, and inconvenient for analysts to use safely. The project creates one documented route from raw data to reliable business questions: what customers buy, when they order, and which products they reorder.
 
-This project develops a data pipeline, analytical data warehouse, and interactive dashboard that transform the raw Instacart data into structured and reusable business information, supporting workforce planning, product availability, customer engagement, and repeat-order recommendations.
+**Success means.** A new team member can clone the repository, run the pipeline, verify its quality checks, open a notebook, and trace each chart back to documented warehouse tables.
 
 ## 2. Project Objectives
 

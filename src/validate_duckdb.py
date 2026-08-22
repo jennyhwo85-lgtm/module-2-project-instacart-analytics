@@ -4,7 +4,7 @@ import duckdb
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATABASE_PATH = PROJECT_ROOT / "Warehouse" / "instacart.duckdb"
+DATABASE_PATH = PROJECT_ROOT / "warehouse" / "instacart.duckdb"
 
 
 TESTS = [
@@ -28,14 +28,22 @@ TESTS = [
         "Dimension and order primary keys are unique",
         """
         SELECT
-            (SELECT COUNT(*) - COUNT(DISTINCT aisle_id)
-             FROM raw.aisles)
-          + (SELECT COUNT(*) - COUNT(DISTINCT department_id)
-             FROM raw.departments)
-          + (SELECT COUNT(*) - COUNT(DISTINCT product_id)
-             FROM raw.products)
-          + (SELECT COUNT(*) - COUNT(DISTINCT order_id)
-             FROM raw.orders)
+            (
+                SELECT COUNT(*) - COUNT(DISTINCT aisle_id)
+                FROM raw.aisles
+            )
+          + (
+                SELECT COUNT(*) - COUNT(DISTINCT department_id)
+                FROM raw.departments
+            )
+          + (
+                SELECT COUNT(*) - COUNT(DISTINCT product_id)
+                FROM raw.products
+            )
+          + (
+                SELECT COUNT(*) - COUNT(DISTINCT order_id)
+                FROM raw.orders
+            )
         """,
     ),
     (
@@ -66,32 +74,52 @@ TESTS = [
         "Required fields contain no nulls",
         """
         SELECT
-            (SELECT COUNT(*) FROM raw.aisles
-             WHERE aisle_id IS NULL OR aisle IS NULL)
-          + (SELECT COUNT(*) FROM raw.departments
-             WHERE department_id IS NULL OR department IS NULL)
-          + (SELECT COUNT(*) FROM raw.products
-             WHERE product_id IS NULL
-                OR product_name IS NULL
-                OR aisle_id IS NULL
-                OR department_id IS NULL)
-          + (SELECT COUNT(*) FROM raw.orders
-             WHERE order_id IS NULL
-                OR user_id IS NULL
-                OR eval_set IS NULL
-                OR order_number IS NULL
-                OR order_dow IS NULL
-                OR order_hour_of_day IS NULL)
-          + (SELECT COUNT(*) FROM raw.order_products_prior
-             WHERE order_id IS NULL
-                OR product_id IS NULL
-                OR add_to_cart_order IS NULL
-                OR reordered IS NULL)
-          + (SELECT COUNT(*) FROM raw.order_products_train
-             WHERE order_id IS NULL
-                OR product_id IS NULL
-                OR add_to_cart_order IS NULL
-                OR reordered IS NULL)
+            (
+                SELECT COUNT(*)
+                FROM raw.aisles
+                WHERE aisle_id IS NULL
+                   OR aisle IS NULL
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.departments
+                WHERE department_id IS NULL
+                   OR department IS NULL
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.products
+                WHERE product_id IS NULL
+                   OR product_name IS NULL
+                   OR aisle_id IS NULL
+                   OR department_id IS NULL
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.orders
+                WHERE order_id IS NULL
+                   OR user_id IS NULL
+                   OR eval_set IS NULL
+                   OR order_number IS NULL
+                   OR order_dow IS NULL
+                   OR order_hour_of_day IS NULL
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.order_products_prior
+                WHERE order_id IS NULL
+                   OR product_id IS NULL
+                   OR add_to_cart_order IS NULL
+                   OR reordered IS NULL
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.order_products_train
+                WHERE order_id IS NULL
+                   OR product_id IS NULL
+                   OR add_to_cart_order IS NULL
+                   OR reordered IS NULL
+            )
         """,
     ),
     (
@@ -157,6 +185,10 @@ TESTS = [
                order_number > 1
                AND days_since_prior_order IS NULL
            )
+           OR (
+               days_since_prior_order IS NOT NULL
+               AND days_since_prior_order NOT BETWEEN 0 AND 30
+           )
         """,
     ),
     (
@@ -201,6 +233,7 @@ TESTS = [
 
 
 def run_tests():
+    """Run data-quality tests against the DuckDB raw tables."""
     if not DATABASE_PATH.exists():
         raise FileNotFoundError(
             f"DuckDB database not found: {DATABASE_PATH}"
@@ -243,5 +276,3 @@ def run_tests():
 
 if __name__ == "__main__":
     run_tests()
-
-    

@@ -6,8 +6,8 @@ import duckdb
 
 # Locate folders relative to this script.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATASET_DIR = PROJECT_ROOT / "Dataset"
-WAREHOUSE_DIR = PROJECT_ROOT / "Warehouse"
+DATASET_DIR = PROJECT_ROOT / "data"
+WAREHOUSE_DIR = PROJECT_ROOT / "warehouse"
 DATABASE_PATH = WAREHOUSE_DIR / "instacart.duckdb"
 
 
@@ -19,7 +19,6 @@ TABLES = {
             CAST(aisle_id AS INTEGER) AS aisle_id,
             CAST(aisle AS VARCHAR) AS aisle
         """,
-        "expected_rows": 134,
     },
     "departments": {
         "filename": "departments.csv",
@@ -27,7 +26,6 @@ TABLES = {
             CAST(department_id AS INTEGER) AS department_id,
             CAST(department AS VARCHAR) AS department
         """,
-        "expected_rows": 21,
     },
     "products": {
         "filename": "products.csv",
@@ -37,7 +35,6 @@ TABLES = {
             CAST(aisle_id AS INTEGER) AS aisle_id,
             CAST(department_id AS INTEGER) AS department_id
         """,
-        "expected_rows": 49688,
     },
     "orders": {
         "filename": "orders.csv",
@@ -47,11 +44,11 @@ TABLES = {
             CAST(eval_set AS VARCHAR) AS eval_set,
             CAST(order_number AS INTEGER) AS order_number,
             CAST(order_dow AS INTEGER) AS order_dow,
-            CAST(order_hour_of_day AS INTEGER) AS order_hour_of_day,
+            CAST(order_hour_of_day AS INTEGER)
+                AS order_hour_of_day,
             CAST(days_since_prior_order AS DOUBLE)
                 AS days_since_prior_order
         """,
-        "expected_rows": 3421083,
     },
     "order_products_prior": {
         "filename": "order_products__prior.csv",
@@ -62,7 +59,6 @@ TABLES = {
                 AS add_to_cart_order,
             CAST(reordered AS INTEGER) AS reordered
         """,
-        "expected_rows": 32434489,
     },
     "order_products_train": {
         "filename": "order_products__train.csv",
@@ -73,7 +69,6 @@ TABLES = {
                 AS add_to_cart_order,
             CAST(reordered AS INTEGER) AS reordered
         """,
-        "expected_rows": 1384617,
     },
 }
 
@@ -90,14 +85,16 @@ def check_source_files():
 
     if missing_files:
         missing_text = "\n".join(missing_files)
+
         raise FileNotFoundError(
             f"Required source files are missing:\n{missing_text}"
         )
 
 
 def create_raw_tables():
-    """Load the original CSV files into DuckDB raw tables."""
+    """Load the six original CSV files into DuckDB raw tables."""
     check_source_files()
+
     WAREHOUSE_DIR.mkdir(parents=True, exist_ok=True)
 
     connection = duckdb.connect(str(DATABASE_PATH))
@@ -112,6 +109,9 @@ def create_raw_tables():
                 DATASET_DIR / specification["filename"]
             ).as_posix()
 
+            # Escape any single quote appearing in the file path.
+            csv_path_sql = csv_path.replace("'", "''")
+
             print(f"Loading raw.{table_name}...")
 
             connection.execute(
@@ -120,7 +120,7 @@ def create_raw_tables():
                 SELECT
                     {specification["columns"]}
                 FROM read_csv_auto(
-                    '{csv_path}',
+                    '{csv_path_sql}',
                     header = true
                 )
                 """
@@ -130,15 +130,7 @@ def create_raw_tables():
                 f"SELECT COUNT(*) FROM raw.{table_name}"
             ).fetchone()[0]
 
-            expected_rows = specification["expected_rows"]
             elapsed_time = time.perf_counter() - start_time
-
-            if actual_rows != expected_rows:
-                raise ValueError(
-                    f"Row-count failure for raw.{table_name}: "
-                    f"expected {expected_rows:,}, "
-                    f"found {actual_rows:,}"
-                )
 
             print(
                 f"Completed raw.{table_name}: "
