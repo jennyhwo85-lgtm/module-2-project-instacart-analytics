@@ -78,23 +78,27 @@ Repeated `user_id` values in `orders.csv` were retained because one customer can
 
 Duplicate validation prevents accidental double-counting while preserving valid one-to-many relationships. A repeated customer or product identifier is not automatically a duplicate; its meaning depends on the grain of the table.
 
+
+
 ## Step 5: Validate Acceptable Value Ranges
 
-Logical range checks were applied to fields with known valid boundaries.
+Logical validation checks were applied according to the business meaning of each field. These checks help identify impossible identifiers, invalid categories, and values outside the permitted dataset boundaries.
 
-| Column | Validation rule |
-|---|---|
-| `order_id`, `user_id`, `product_id` | Must be greater than zero |
-| `order_number` | Must be at least 1 |
-| `order_dow` | Must be between 0 and 6 |
-| `order_hour_of_day` | Must be between 0 and 23 |
-| `days_since_prior_order` | Must be between 0 and 30, or `NaN` for a first order |
-| `eval_set` | Must be `prior`, `train`, or `test` |
-| `add_to_cart_order` | Must be at least 1 |
-| `reordered` | Must be either 0 or 1 |
-| Product, aisle, and department names | Must not be blank |
+| Column | Validation rule | Rationale |
+|---|---|---|
+| `order_id`, `user_id`, `product_id` | Must be a positive integer (at least 1) | These fields identify valid records. Zero and negative values cannot represent valid orders, customers, or products and may cause incorrect table joins. |
+| `order_number` | Must be a positive integer (at least 1) | A customer's first order is numbered 1, and each subsequent order increases sequentially. Therefore, zero and negative order numbers are invalid. |
+| `order_dow` | Must be between 0 and 6 | The dataset represents the seven days of the week using values from 0 to 6. Any other value would not correspond to a valid day. |
+| `order_hour_of_day` | Must be between 0 and 23 | Orders use the 24-hour clock, where 0 represents midnight and 23 represents 11 p.m. |
+| `days_since_prior_order` | Must be between 0 and 30, or missing (`NaN`) for a first order | A value of 0 means the customer ordered again on the same day, while 30 represents 30 or more days. A first order has no previous order, so its missing value is meaningful and retained as `NaN`. |
+| `eval_set` | Must be `prior`, `train`, or `test` | These are the only valid dataset partitions. Other values would indicate an invalid or incorrectly classified order. |
+| `add_to_cart_order` | Must be a positive integer (at least 1) | It represents the item's position in the shopping basket. The first item added is position 1, so zero and negative positions are invalid. |
+| `reordered` | Must be either 0 or 1 | This is a binary field: 0 means the product was not reordered, while 1 means it was previously purchased by the customer. |
+| Product, aisle, and department names | Must not be blank | Descriptive names are required so records can be interpreted, grouped, and displayed correctly in analysis and dashboards. |
 
-No invalid records were identified under these logical validation rules.
+For integer fields, “greater than zero” and “at least 1” have the same meaning. The wording “positive integer (at least 1)” is used consistently for clarity.
+
+No invalid records were identified under the logical validation rules that were executed.
 
 ### Rationale
 
