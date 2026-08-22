@@ -123,6 +123,68 @@ TESTS = [
         """,
     ),
     (
+        "Identifier fields are positive integers",
+        """
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM raw.aisles
+                WHERE aisle_id < 1
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.departments
+                WHERE department_id < 1
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.products
+                WHERE product_id < 1
+                   OR aisle_id < 1
+                   OR department_id < 1
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.orders
+                WHERE order_id < 1
+                   OR user_id < 1
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.order_products_prior
+                WHERE order_id < 1
+                   OR product_id < 1
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.order_products_train
+                WHERE order_id < 1
+                   OR product_id < 1
+            )
+        """,
+    ),
+    (
+        "Descriptive names are not blank",
+        """
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM raw.aisles
+                WHERE TRIM(aisle) = ''
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.departments
+                WHERE TRIM(department) = ''
+            )
+          + (
+                SELECT COUNT(*)
+                FROM raw.products
+                WHERE TRIM(product_name) = ''
+            )
+        """,
+    ),
+    (
         "Products reference valid aisles and departments",
         """
         SELECT COUNT(*)

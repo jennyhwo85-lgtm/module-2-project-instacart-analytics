@@ -49,7 +49,7 @@ Correct data types are necessary for accurate filtering, joining, grouping, and 
 
 Missing-value counts were checked for every column in all six source files. The main finding was that `days_since_prior_order` contained 206,209 missing values, matching the number of unique customers. Each missing value belonged to a customer's first order, for which no previous order existed.
 
-These values were retained as actual missing values (`NaN`). They were not filled with the text `"NaN"`, zero, a mean, or a median.
+These values were retained as actual missing values (`NaN`) in the DataFrame, and were exported as true blank cells (not the literal text `"NaN"`) in `orders_cleaned.csv`. They were not filled with the text `"NaN"`, zero, a mean, or a median.
 
 | Value in `days_since_prior_order` | Meaning |
 |---|---|
@@ -82,7 +82,7 @@ Duplicate validation prevents accidental double-counting while preserving valid 
 
 ## Step 5: Validate Acceptable Value Ranges
 
-Logical validation checks were applied according to the business meaning of each field. These checks help identify impossible identifiers, invalid categories, and values outside the permitted dataset boundaries.
+Logical validation checks were applied according to the business meaning of each field. These checks help identify impossible identifiers, invalid categories, and values outside the permitted dataset boundaries. They are implemented as automated SQL tests in `validate_duckdb.py`, run against the raw DuckDB tables after loading.
 
 | Column | Validation rule | Rationale |
 |---|---|---|
@@ -106,14 +106,16 @@ Bounded-domain validation identifies impossible values more accurately than stat
 
 ## Step 6: Validate Relationships Between Files
 
-Referential-integrity checks were performed using the source identifiers:
+Referential-integrity checks were also implemented as automated SQL tests in `validate_duckdb.py`, using the source identifiers:
 
 - Product `aisle_id` values were checked against `aisles.csv`.
 - Product `department_id` values were checked against `departments.csv`.
 - Product identifiers in the order-product files were checked against `products.csv`.
 - Order identifiers in the order-product files were checked against `orders.csv`.
+- Records in `order_products__prior.csv` were checked to confirm they only reference orders with `eval_set = 'prior'`.
+- Records in `order_products__train.csv` were checked to confirm they only reference orders with `eval_set = 'train'`.
 
-No orphan product-to-aisle or product-to-department relationships were identified.
+No orphan product-to-aisle or product-to-department relationships were identified. No cross-partition records were identified between the prior and train order-product files.
 
 ### Rationale
 
@@ -186,6 +188,10 @@ After cleaning and staging, the following checks were repeated:
 ### Rationale
 
 Final validation confirms that the cleaning and staging operations did not accidentally remove, duplicate, or alter valid records before feature engineering began.
+
+## Output File
+
+`Data_Cleaning.ipynb` exports one reference file, `orders_cleaned.csv`, containing `orders.csv` with `days_since_prior_order` coerced to a numeric type. This file is for validation reference only; `create_duckdb.py` loads the original `orders.csv` directly, so this export does not feed into the DuckDB warehouse.
 
 ## Cleaning Outcome
 
