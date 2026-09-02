@@ -1,19 +1,19 @@
+default_environment: dev
+environments:
+  - name: dev
+
 plugins:
   utilities:
-    - name: ingest
-      namespace: ingest
-      commands:
-        run:
-          executable: python
-          args:
-            - scripts/ingest.py
-
-    - name: dbt_build
-      namespace: dbt_build
-      commands:
-        run:
-          executable: dbt
-          args:
-            - build
-            - --project-dir
-            - instacart_dbt
+  - name: ingest
+    namespace: ingest
+    commands:
+      run:
+        executable: python
+        args: scripts/ingest.py
+  - name: dbt_build
+    namespace: dbt_build
+    commands:
+      run:
+        executable: dbt
+        args: build --project-dir instacart_dbt
+project_id: 01a06250-7688-709b-958c-67889e95afd9
