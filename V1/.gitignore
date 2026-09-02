@@ -29,3 +29,6 @@ venv/
 
 # OS
 .DS_Store
+warehouse/*.duckdb
+warehouse/*.duckdb.wal
+.meltano/
