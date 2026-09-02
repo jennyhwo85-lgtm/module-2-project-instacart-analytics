@@ -110,4 +110,3 @@ dbt              → coordinates everything
 3. place the six source CSV files in [data/ folder](/data/)
 4. configure the local DuckDB path in `cat ~/.dbt/profiles.yml` (make sure it points to local porject db `~/module-2-project-instacart-analytics/warehouse/instacart.duckdb`)
 5. Then run `meltano run ingest:run dbt_build:run` to rebuild the raw warehouse, execute all dbt transformations, and run the data-quality tests.
-
