@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: dim_orders
+    description: One row per order.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        tests:
+          - not_null
+
+  - name: dim_products
+    description: One row per product.
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_aisles
+    description: One row per aisle.
+    columns:
+      - name: aisle_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_departments
+    description: One row per department.
+    columns:
+      - name: department_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_users
+    description: One row per user, summarised from observed order items.
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+          - unique
+      - name: reorder_rate
+        tests:
+          - not_null
+
+  - name: fact_order_items
+    description: One row per product in an observed prior or train order.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_orders')
+              field: order_id
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+      - name: user_id
+        tests:
+          - not_null
+      - name: reordered
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: source_eval_set
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['prior', 'train']

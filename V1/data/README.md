@@ -34,4 +34,4 @@ https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis/data
 | `order_products__prior.csv` | 32,434,489 | 4 |
 | `order_products__train.csv` | 1,384,617 | 4 |
 
-Full column-level definitions: [`../docs/DATA_DICTIONARY.md`](../docs/DATA_DICTIONARY.md) §1.
+Full column-level definitions: [`../docs/DATA_DICTIONARY.md`](../docs/DATA_DICTIONARY.md) §1.`

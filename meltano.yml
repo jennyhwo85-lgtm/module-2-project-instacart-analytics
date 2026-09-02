@@ -1,0 +1,19 @@
+plugins:
+  utilities:
+    - name: ingest
+      namespace: ingest
+      commands:
+        run:
+          executable: python
+          args:
+            - scripts/ingest.py
+
+    - name: dbt_build
+      namespace: dbt_build
+      commands:
+        run:
+          executable: dbt
+          args:
+            - build
+            - --project-dir
+            - instacart_dbt

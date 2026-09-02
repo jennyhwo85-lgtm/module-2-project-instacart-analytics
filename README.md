@@ -8,22 +8,28 @@ Instacart processes millions of customer orders across thousands of products. Ho
 
 **Problem we are solving.** Raw transaction files are large, split across several tables, and inconvenient for analysts to use safely. The project creates one documented route from raw data to reliable business questions: what customers buy, when they order, and which products they reorder.
 
-**Success means.** A new team member can clone the repository, run the pipeline, verify its quality checks, open a notebook, and trace each chart back to documented warehouse tables.
+**Success means.**
 
-## 2. Project Objectives
+1. Derive meaningful insights to business users to enable them to make informed decisions.
+2. Setup repeatable data pipeline for the convienience of the technology team.  
+3. A new team member can clone the repository, run the pipeline, verify its quality checks, open a notebook, and trace each chart back to documented warehouse tables (Internal requirement).
 
-1. Ingest the six Instacart source files into BigQuery to provide centralised and scalable data storage.
-2. Clean and validate the raw data by checking missing values, duplicate records, data types, and logical inconsistencies.
-3. Transform the source data into a star-schema-based analytical model containing customer, product, order-time, order, and order-item tables.
-4. Engineer customer, order, and product features such as basket size, customer order frequency, reorder rate, average order gap, and customer segment.
-5. Use Python and pandas to analyse ordering patterns, customer purchasing behaviour, and product demand.
-6. Develop a Streamlit dashboard that communicates the findings through KPI cards, charts, filters, and business implications.
+## 2. Revised Project Objectives
+
+1. Data Ingestion and Warehouse: Ingest the six Instacart CSV files into a reproducible local DuckDB warehouse using Python.
+2. Data Quality and Validation: Use dbt to standardise data types and test for missing values, duplicates, invalid values, and broken relationships.
+3. Star Schema Design: Build a star schema with dim_users, dim_products, dim_aisles, dim_departments, dim_orders, and fact_order_items.
+4. Feature Engineering: Derive customer, order, and product features such as basket size, order frequency, reorder rate, average order gap, and product demand.
+5. Python Data Analysis: Use Python and pandas to analyse ordering patterns, customer behaviour, basket composition, product demand, and reorder behaviour.
+6. Dashboard and Business Recommendations: Develop a Streamlit dashboard with KPIs, charts, filters, and plain-language recommendations based on the analysis.
+
+![workflow overview](assets/elt_workflow_v2.svg)
 
 > **Important data boundary:** Instacart provides no calendar dates, prices, revenue, or customer demographics. This project therefore reports *behaviour* metrics — not monthly sales or monetary customer value — and documents this limitation throughout.
 
 ## 3. How This Maps to the Assignment Brief
 
-The assignment brief recommends monthly sales trends, top-selling products, and customer segmentation by purchasing behaviour. These were adapted to what the Instacart dataset actually contains — see [`docs/assignment_brief.md`](docs/assignment_brief.md) for the original brief and [`docs/README.md`](docs/README.md) §3 for the full mapping table.
+The assignment brief recommends monthly sales trends, top-selling products, and customer segmentation by purchasing behaviour. These were adapted to what the Instacart dataset actually contains — see [`V1/docs/assignment_brief.md`](V1/docs/assignment_brief.md) for the original brief and [`V1/docs/README.md`](V1/docs/README.md) §3 for the full mapping table.
 
 | Dashboard page | Business question |
 |---|---|
@@ -33,40 +39,25 @@ The assignment brief recommends monthly sales trends, top-selling products, and 
 
 ## 4. Architecture
 
-Local-source data is ingested via **Meltano**, loaded into **BigQuery**, transformed and tested with **dbt**, orchestrated with **Dagster**, and analysed via **Jupyter** / visualised in **Streamlit / Power BI**.
+Local-source data is ingested via **Meltano**, loaded into **DuckDB**, transformed and tested with **dbt**, orchestrated with **Dagster** (future development/ optional), and analysed via **Jupyter** / visualised in **Streamlit / Power BI**.
 
-![Pipeline architecture](docs/pipeline_architecture.jpeg)
+![Pipeline architecture](assets/pipeline_and_star_schema_v2.svg)
 
-## 5. Star Schema
-
-| Table | Grain | Purpose |
-|---|---|---|
-| `dim_product` | One row per product | Product name plus aisle and department hierarchy |
-| `dim_user` | One row per customer | Customer identifier and engineered behavioural features |
-| `dim_order_slot` | One row per day-of-week/hour combination | Supports time-pattern analysis (168 possible slots) |
-| `fact_order` | One row per order | Order sequence, customer, timing, and order-level metrics |
-| `fact_order_item` | One row per product within an order | Cart position, reorder flag, prior/train source |
-
-Full field-level definitions: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md)
-Design rationale: [`docs/STAR_SCHEMA_README.md`](docs/STAR_SCHEMA_README.md)
-Current ERD (in progress, being reviewed against the data dictionary): [`docs/star_schema_erd.jpg`](docs/star_schema_erd.jpg)
+Full field-level definitions: [`notebook/data_dictionary`](notebook/data_dictionary.md)
 
 ## 6. Data Cleaning and Feature Engineering
 
-Full write-up of profiling, missing-value handling, duplicate/uniqueness checks, referential-integrity checks, and outlier handling: [`docs/DATA_CLEANING_README.md`](docs/DATA_CLEANING_README.md)
+Full write-up of profiling, missing-value handling, duplicate/uniqueness checks, referential-integrity checks, and outlier handling: [`notebook/data_dictionary`](notebook/data_dictionary.md)
 
-Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_gap`, `customer_segment`, `slot_key`, `time_band`, `product_reorder_rate`. Full definitions and calculations: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) §4.
+Key engineered features: `basket_size`, `customer_reorder_rate`, `average_order_gap`, `customer_segment`, `time_band`, `product_reorder_rate`. Full definitions and calculations: [`notebook/data_dictionary`](notebook/data_dictionary.md)
 
 ## 7. Team and Task Assignment
-
-
-> **Pending confirmation (as of 2026-08-20):** Wei Xiang flagged that the split below may not match what was agreed. His understanding: Lai Yoke + Jenny Hwo also own producing the cleaned `.db` file (not just schema design); Benedict + Jowber validates the cleaned data against the documentation and runs EDA; the Streamlit dashboard can be built by either Benedict + Jowber or Wei Xiang. To be confirmed with the full team after class and this table updated accordingly.
 
 | Owner(s) | Responsibility |
 |---|---|
 | Lai Yoke, Jenny Hwo | Data warehouse design (star schema), local DuckDB pipeline + validation, GitHub repo |
-| Benedict, Jowber | ELT / data cleaning (in GCP, BigQuery), dbt, EDA, dashboard |
-| Wei Xiang | Integration review, presentation, audience Q&A |
+| Benedict, Jowber |  Data Validation, Feature Engineering, EDA, dashboard, EDA portion presentation, audience Q&A|
+| Wei Xiang | Integration review, ELT portion presentation, audience Q&A |
 
 ## 8. Repository Structure
 
@@ -75,19 +66,48 @@ instacart-analytics/
 ├── README.md                # this file
 ├── docs/                    # architecture decisions, data dictionary, diagrams, assignment brief
 ├── data/                    # dataset location / download instructions (raw CSVs not committed)
-├── src/                     # Python ingestion and quality-check scripts
-├── warehouse/               # generated warehouse artefacts (ignored)
+├── scripts/                 # Python ingestion and quality-check scripts
 ├── dbt_project/             # staging, intermediate, mart SQL models and tests
-├── notebooks/               # numbered, reproducible analysis notebooks
+├── notebooks/               # numbered, reproducible analysis notebooks (including data_dictionary.md)
 ├── tests/                   # Python tests where dbt tests are not sufficient
-├── github/workflows/        # pull-request quality workflow
-└── presentation/            # final slide deck and speaker notes
+├── V1/                      # previous version repo
+└── assets/                  # contains image
 ```
 
 Generated databases, raw CSVs, notebook caches, and secrets must not be committed. Code, model SQL, test definitions, documentation, and a reproducible dependency file must be committed.
 
-## 9. Status / Open Items
+## 9. Steps to troubeshoot from scratch (delete instacart_dbt, only keep csv in data folder & *.yml)
 
-- [ ] Reconcile `dim_user` engineered-feature fields, `slot_key` type, `time_band`/`day_part` naming, `reordered` type, and `fact_order_item.item_count` between the ERD and `docs/DATA_DICTIONARY.md` (tracked in that file §6).
-- [ ] Confirm dataset placement/download instructions in `data/README.md`.
-- [ ] Repo scaffold created 2026-08-19; dbt models, ingestion scripts, and notebooks to follow.
+1. run `conda create -n elt python=3.11 -y`
+2. run `conda activate elt`
+3. run `python -m pip install -r requirements.txt` (make sure you install within virtual env)
+4. go to data/.gitkeep and download csv via the link provided
+5. run `python scripts/ingest.py`
+6. run `python scripts/check_database.py`
+7. run `dbt --version` then `dbt init instacart_dbt` (make sure you installed duckdb plugin & configure profiles.yml)
+8. from the options `choose duckdb`
+9. run `dbt debug --project-dir instacart_dbt` (test connection)
+10. run `dbt run --project-dir instacart_dbt` (create models)
+11. run `rm -rf instacart_dbt/models/example` (remove example, unnecessary for project)
+12. run `dbt test --project-dir instacart_dbt` (at this stage, the correct response is "Nothing to do")
+13. run `mkdir -p instacart_dbt/models/staging` (create stage model)
+14. make sure instacart_dbt/model/sources.yml is transferred correctly
+15. run `dbt test --project-dir instacart_dbt`
+
+## 10. At-a-glance glossary
+
+.sql files       → transformation logic
+.yml files       → metadata, relationships, configuration, and tests
+DuckDB           → executes the compiled SQL
+dbt              → coordinates everything
+
+**Star Schema details refer to [`notebook/data_dictionary`](notebook/data_dictionary.md)**
+
+## 11. quick setup
+
+1. After cloning the repository, create and activate the Conda `elt` environment
+2. install requirements.txt; `python -m pip install -r requirements.txt`
+3. place the six source CSV files in [data/ folder](/data/)
+4. configure the local DuckDB path in `cat ~/.dbt/profiles.yml` (make sure it points to local porject db `~/module-2-project-instacart-analytics/warehouse/instacart.duckdb`)
+5. Then run `meltano run ingest:run dbt_build:run` to rebuild the raw warehouse, execute all dbt transformations, and run the data-quality tests.
+

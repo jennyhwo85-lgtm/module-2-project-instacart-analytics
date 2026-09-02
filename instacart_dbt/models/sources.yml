@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: main
+
+    tables:
+      - name: orders
+        identifier: raw_orders
+
+      - name: products
+        identifier: raw_products
+
+      - name: aisles
+        identifier: raw_aisles
+
+      - name: departments
+        identifier: raw_departments
+
+      - name: order_products_prior
+        identifier: raw_order_products_prior
+
+      - name: order_products_train
+        identifier: raw_order_products_train
