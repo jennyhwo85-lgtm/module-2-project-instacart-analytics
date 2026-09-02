@@ -3,3 +3,10 @@
 /logs
 /.venv
 /.vscode
+
+warehouse/*.duckdb
+warehouse/*.duckdb.wal
+.meltano/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
